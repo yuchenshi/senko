@@ -6,7 +6,7 @@ Project "Senko" is a web-based implementation of the
 
 [**Online Demo**](https://senko-hanabi.web.app)
 
-The front-end uses TypeScript, Stylus, Mithril, Rxjs, and Material Design.
+The frontend uses TypeScript, Stylus, Mithril, Rxjs, and Material Design.
 
 The backend features a serverless design using Firestore as the database, with
 game rules validated entirely with Firebase Security Rules.
