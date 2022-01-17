@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": [
+      "es5",
+      "dom",
+      "es2015.promise",
+      "es2015.iterable",
+      "es2015.collection"
+    ],
+    "downlevelIteration": true,
+    "baseUrl": ".",
+    "paths": { "rxjs": ["node_modules/rxjs"] }
+  }
+}

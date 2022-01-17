@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Senko Hanabi</title>
+
+    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/material-components-web@5/dist/material-components-web.min.css" media="all">
+    <link rel="stylesheet" href="/bundle.css" media="screen">
+  </head>
+  <body>
+    <div class="sk-layout">
+      <div class="sk-logo">
+        <a href="/" style="text-decoration: none;">
+          <span style="color:#E53935">Senko</span> <span style="color:#1E88E5">Hanabi</span>
+        </a>
+      </div>
+      <div class="sk-main">
+        <div class="sk-room-list-wrapper">
+          <div class="sk-room-list"><!--rendered--></div>
+        </div>
+      </div>
+      <div class="sk-aside"></div>
+    </div>
+    <div class="sk-loading" style="position:absolute;width:100%;top:20vh;font-size:32px;text-align:center">
+      Loading...
+      <svg class="spinner" style="display:none" width="65" height="65" viewBox="0 0 66 66" xmlns="http://www.w3.org/2000/svg">
+        <circle class="spinner-path" fill="none" stroke-width="6" stroke-linecap="round" cx="33" cy="33" r="30"></circle>
+      </svg>
+    </div>
+    <script src="/bundle.js"></script>
+    <script src="https://unpkg.com/material-components-web@5/dist/material-components-web.min.js"></script>
+  </body>
+</html>

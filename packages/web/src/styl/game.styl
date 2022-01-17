@@ -1,0 +1,433 @@
+h-to-w-ratio = 1.4
+game-background = #fff
+
+.sk-game
+  background: game-background
+  font-size: 10px
+
+  @media (min-width: 384px) and (min-height: 384px * h-to-w-ratio)
+    font-size: 12px
+
+  @media (min-width: 512px) and (min-height: 512px * h-to-w-ratio)
+    font-size: 16px
+  @media (min-width: 1024px) and (min-height: 1024px * h-to-w-ratio)
+    font-size: 24px
+
+html, body {
+  // TODO
+  overflow: hidden
+}
+
+card-width = 4em
+card-height = card-width * 4 / 3
+hand-height = card-height + 3.25em
+
+.card-sized
+  width: card-width
+  height: card-height
+  img { width: 100% }
+
+.sk-game
+  height: 100vh
+  width: 100vw
+  position: relative
+
+.sk-table
+  position: absolute
+  top: hand-height
+  left: hand-height
+  right: hand-height
+  bottom: hand-height
+  margin: 1em
+  background-color: #f0f0f0;
+  display: flex
+  flex-direction: column
+
+.sk-hands-2players
+  .sk-player-hand-n0
+    bottom: 0
+
+  .sk-player-hand-n1
+    top: 0
+    transform: rotate(180deg)
+
+    // Rotate player / card label back to normal for easier reading.
+    .sk-player-name, .sk-card-value, .sk-card-order, .sk-inspect-wrapper
+      transform: rotate(180deg)
+
+.sk-hands-4players, .sk-hands-3players
+  .sk-player-hand-n0
+    bottom: 0
+
+  .sk-player-hand-n1
+    bottom: 0
+    transform-origin: left bottom
+    transform: rotate(90deg) translate(-100%) translate(-50vh) translate(50vw)
+
+    .sk-card-value > * { transform: rotate(-90deg) }
+
+  .sk-player-hand-n2
+    top: 0
+    transform: rotate(180deg)
+
+    // Rotate player / card label back to normal for easier reading.
+    .sk-player-name, .sk-card-value, .sk-card-order, .sk-inspect-wrapper
+      transform: rotate(180deg)
+
+  .sk-player-hand-n3
+    bottom: 0
+    transform-origin: right bottom
+    transform: rotate(-90deg) translate(100%) translate(50vh) translate(-50vw)
+
+    .sk-card-value > * { transform: rotate(90deg) }
+
+.sk-hands-6players, .sk-hands-5players
+  // Put Player 0 and 5 in the same row (bottom) and Player 0 and 5 in the same top row.
+  .sk-player-hand-n0, .sk-player-hand-n5
+    bottom: 0
+
+  .sk-player-hand-n1
+    bottom: 0
+    transform-origin: left bottom
+    transform: rotate(90deg) translate(-100%) translate(-50vh) translate(50vw)
+
+    .sk-card-value > * { transform: rotate(-90deg) }
+
+  .sk-player-hand-n2, .sk-player-hand-n3
+    top: 0
+    transform: rotate(180deg)
+
+    // Rotate player / card label back to normal for easier reading.
+    .sk-player-name, .sk-card-value, .sk-card-order, .sk-inspect-wrapper
+      transform: rotate(180deg)
+
+  .sk-player-hand-n4
+    bottom: 0
+    transform-origin: right bottom
+    transform: rotate(-90deg) translate(100%) translate(50vh) translate(-50vw)
+
+    .sk-card-value > * { transform: rotate(90deg) }
+
+  .sk-player-hand-n0, .sk-player-hand-n2
+    left: hand-height
+    padding: 0 card-width
+    z-index: 1
+    width: auto
+  .sk-player-hand-n3, .sk-player-hand-n5
+    right: hand-height
+    padding: 0 card-width
+    width: auto
+
+  // Some special handling for smaller screens and mobile (best effort really):
+  .sk-player-hand-n0, .sk-player-hand-n2, .sk-player-hand-n3, .sk-player-hand-n5
+    // Players in the same row are likely going to be overlap, so try to cover
+    // the one on the bottom cleanly.
+    background: game-background
+    background: linear-gradient(90deg, transparent 0%, game-background 10%, game-background 90%, transparent 100%)
+    &:hover
+      z-index: 2 // Display the hovered hand on top.
+    &.sk-player-hand-selected
+      z-index: 3 // Display the selected hand on top (more touch-screen friendly).
+
+.sk-hands-5players
+  .sk-player-hand-n0
+    // Let Player 0 take the whole row since there is no Player 5 to share the space.
+    left: 0
+    width: 100%
+    background: none
+
+.sk-player-hand
+  width: 100%
+  height: hand-height
+  text-align: center
+  position: absolute
+  white-space: nowrap
+
+.sk-player-name .material-icons
+  font-size: 1.5em
+  vertical-align: bottom
+
+.sk-player-name-active
+  background-color: rgba(100, 100, 100, 0.3)
+  .sk-player-hand-n0 & { background-color: rgba(0, 161, 255, 0.6) }
+  .material-icons
+    color: rgb(0, 80, 255)
+    .sk-player-hand-n0 & { color: inherit }
+
+  background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent)
+  background-size: 40px 40px
+  animation: stripe 2s linear infinite
+
+@keyframes stripe
+  from
+    background-position: 40px 0
+  to
+    background-position: 0 0
+
+.sk-player-name
+  position: absolute
+  bottom: 0
+  left: 0
+  right: 0
+  text-align: center
+
+  .sk-player-hand:hover &
+    // Hide it on hover (visually only), to make room for card order text.
+    text-indent: -10000px
+
+.sk-player-name-active
+  font-weight: bold
+
+.sk-player-hand-card
+  display: inline-block
+  margin: 0 .5em
+  position: relative
+
+  &.sk-card-last-copy .sk-card-wrapper
+    box-shadow: #ff3333 0 0 2px 2px;
+
+  &.sk-card-extraneous .sk-card-wrapper
+    box-shadow: #cccccc 0 0 1px 1px;
+
+  &.sk-card-selected .sk-card-wrapper
+    box-shadow: #ffff33 0 0 3px 3px;
+
+  &.sk-card-nonmatching
+    opacity: .3;
+
+.sk-card-value
+  display: flex
+
+.sk-card-value-suit, .sk-card-value-rank
+  flex: 1
+  cursor: pointer
+  padding: 0
+  &:first-child
+    margin-right: 0.1em
+
+  &.sk-card-value-hinted
+    text-decoration: underline
+    font-weight: bold
+
+  &[aria-hidden="true"]
+    appearance: none
+    border: 0
+    background: none
+
+.sk-card-wrapper
+  position: relative
+  border-radius: 10%; // mainly for aligning drop shadow
+
+.sk-inspect-wrapper
+  position: absolute
+  top: 0
+  right: 0
+  bottom: 0
+  left: 0
+  pointer-events: none
+
+.sk-inspect
+  position: absolute
+  right: 0
+  bottom: 0
+  color: rgba(255, 255, 255, .7);
+
+  > span {
+    font-size: 1.5em
+  }
+
+.sk-inspect-insights
+  position: absolute
+  background: 100%;
+  // background: linear-gradient(180deg, transparent 0%, #dddddd 100%)
+  background: rgba(100, 100, 100, .7)
+  background: rgba(220, 220, 220, .8)
+  //background: #000
+  top: .25em
+  left: 1px
+  right: 1px
+  // font-size: 0 // remove spacing
+
+  > div {
+    display: flex
+  }
+
+.sk-inspect-copies
+  position: absolute
+  bottom: 3px
+  left: 3px
+  background: rgba(220, 220, 220, .8)
+
+  .material-icons
+    font-size: 1.5em
+    vertical-align: bottom
+
+    .sk-card-last-copy:not(.sk-card-extraneous) &
+      color: #ff3333
+
+.sk-inspect-insights, .sk-inspect-copies
+  opacity: 0
+  transition: opacity .3s
+
+  &:hover,
+  .sk-inspect:hover + &,
+  .sk-card-wrapper:hover &
+    opacity: 1
+
+.sk-possible-suit, .sk-possible-rank
+  flex: 1;
+  display: inline-block;
+  font-size: 1em;
+  font-family: monospace;
+  font-weight: bold;
+
+  &.sk-eliminated, &.sk-insight-outdated
+    color: #666;
+    font-weight: normal;
+
+.sk-possible-suit
+  border-radius: 50%
+
+.sk-possible-suit::first-letter
+  font-size: .8em
+
+.sk-possible-suit:nth-child(1) { background-color: #f00; color: #fff; }
+.sk-possible-suit:nth-child(2) { background-color: #0f0; }
+.sk-possible-suit:nth-child(3) { background-color: #00f; color: #fff; }
+.sk-possible-suit:nth-child(4) { background-color: #ff0; }
+.sk-possible-suit:nth-child(5) { background-color: #fff; }
+.sk-possible-suit:nth-child(6) { background-color: #f0f; }
+.sk-possible-suit.sk-insight-outdated { background-color: #666; color: #fff; }
+
+.sk-possible-suit.sk-eliminated
+  color: #fff;
+  background-color: #666;
+
+.sk-card-order
+  position: absolute
+  width: 100%
+  text-transform: uppercase
+
+  // Hide it unless hover (visually only), to avoid overlaying player name.
+  .sk-player-hand &
+    text-indent: -10000px
+  .sk-player-hand:hover &
+    text-indent: 0
+
+.sk-table-status
+  display: flex
+  align-items: center
+  border-top: solid 1px #aaa;
+  border-bottom: solid 1px #aaa;
+
+.sk-table-status-basics
+  flex: 1
+  text-align: center
+
+.sk-table-status-logs
+  flex: 1
+  text-align: center
+  height: 5em
+  overflow: auto
+
+  &-expanded
+    position: fixed
+    top: 0
+    bottom: 0
+    left: 0
+    right: 0
+    height: auto
+    background-color: #fff
+    z-index: 100
+    font-size: 1rem
+
+.sk-table-status-log-latest
+  font-weight: bold
+
+.sk-table-status-hints
+  display: block;
+
+.sk-table-status-errors
+  flex: 1
+  text-align: center
+  &-full
+    background-color: #ff0000
+    color: #ffffff
+
+.sk-score-pile
+  padding: 1em
+  text-align: center
+  position: relative
+
+  &.sk-action-target
+    &::after
+      content: "Play"
+      background-color: rgba(255, 255, 200, .7);
+      font-size: 3em
+      display: flex
+      flex-direction: column
+      justify-content: center
+      text-align: center
+      position: absolute
+      top: 0
+      bottom: 0
+      left: 0
+      right: 0
+    &:hover::after
+      background-color: rgba(255, 255, 200, .9);
+
+.sk-score-cards
+  display: inline-block
+  margin: 0 .5em
+  width: card-width
+  height: (card-width * 5 / 3)
+  img { width: 100% }
+
+.sk-discard-pile
+  padding: 1.5em 1em
+  flex: 1
+  text-align: center
+  opacity: .5;
+  position: relative
+
+  // XXX: Allow viewing all discards when there are too many cards.
+  // This won't play nicely with animations! Consider smaller cards or ...?
+  overflow-y: auto
+
+  &.sk-action-target
+    &::after
+      background-color: rgba(255, 150, 150, .6);
+      content: "Discard"
+      font-size: 3em
+      display: flex
+      flex-direction: column
+      justify-content: center
+      text-align: center
+      position: absolute
+      top: 0
+      bottom: 0
+      left: 0
+      right: 0
+    &:hover
+      opacity: 1;
+
+.sk-discard-pile-card
+  display: inline-block
+  margin: 0 .5em
+
+.sk-table-deck
+  margin: .5em
+  position: relative
+  box-shadow: 3px 3px 1px 1px #444
+  border-radius: 10%
+
+.sk-table-deck-count
+  position: absolute
+  right: 0
+  bottom: 10%
+  left: 0
+  text-align: center
+  pointer-events: none
+
+  &::before { content: "(" }
+  &::after { content: ")" }

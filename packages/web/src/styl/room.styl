@@ -1,0 +1,79 @@
+@import "./spinner";
+
+.sk-loading
+  font-size: 0 !important
+
+.spinner
+  display: block !important
+  margin: 0 auto
+
+.sk-logo
+  font-weight: bold;
+  font-size: 4em;
+  text-align: center;
+  padding: 20px 0;
+
+.sk-room-list-wrapper
+  position: relative;
+  max-height: 100%;
+  overflow-y: auto;
+
+.sk-room-list
+  position: relative;
+  max-width: 60em;
+  margin: 0 auto;
+
+.sk-create-room
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+
+.sk-room-players, .sk-room-options
+  padding: 16px;
+
+.mdc-form-field > label
+  margin-bottom: 0;
+
+.sk-room-list > ul {
+  background-color: #fff;
+  padding-bottom: 96px;
+}
+
+.sk-room-list-room-link
+  text-decoration: none !important
+  color: inherit !important
+
+.sk-room-looking .mdc-list-item__graphic {
+  background-color: rgba(0, 0, 0, 0.3);
+  background-color: #8BC34A;
+  color: #fff;
+}
+.sk-room-looking .mdc-list-item__graphic::before {
+  content: "person_add";
+}
+.sk-room-ingame .mdc-list-item__graphic {
+  background-color: rgba(0, 0, 0, 0.3);
+  background-color: #FFEB3B;
+  color: #fff;
+}
+.sk-room-ingame .mdc-list-item__graphic::before {
+  content: "supervisor_account";
+}
+.sk-room-postgame .mdc-list-item__graphic,
+.sk-room-abandoned .mdc-list-item__graphic {
+  background-color: rgba(0, 0, 0, 0.3);
+  color: #fff;
+}
+.sk-room-postgame .mdc-list-item__graphic::before,
+.sk-room-abandoned .mdc-list-item__graphic::before {
+  content: "history";
+}
+
+.sk-room-user-player .mdc-list-item__graphic {
+  background-color: rgba(0, 0, 0, 0.3);
+  background-color: #8BC34A;
+  color: #fff;
+}
+.sk-room-user-player .mdc-list-item__graphic::before {
+  content: "person";
+}

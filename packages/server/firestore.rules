@@ -1,0 +1,401 @@
+// Copyright 2019 Yuchen Shi
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /waitingAreas/{roomId} {
+      allow read;
+      allow create: if (
+        request.resource.data.keys().hasOnly(['ownerUid', 'name', 'status', 'createdAt', 'rules']) &&
+        request.resource.data.ownerUid == request.auth.uid &&
+        request.resource.data.name is string &&
+        request.resource.data.name.size() >= 1 &&
+        request.resource.data.name.size() <= 50 &&
+        request.resource.data.status == 'looking' &&
+        request.resource.data.createdAt == request.time &&
+        request.resource.data.rules.keys().hasOnly(['suitCount']) &&
+        request.resource.data.rules.suitCount in [5, 6] &&
+        existsAfter(/databases/$(database)/documents/waitingAreas/$(roomId)/users/$(request.auth.uid))
+      );
+      allow update: if (
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['preset', 'suitCount']) &&
+        resource.data.ownerUid == request.auth.uid &&
+        request.resource.data.rules.suitCount in [5, 6] &&
+        (!('preset' in request.resource.data) || request.resource.data.preset in ['5colors', '6colors', 'rainbow', 'unicorn'])
+      );
+      match /users/{uid} {
+        allow read;
+        allow create, update: if (
+          request.auth.uid == uid &&
+          request.resource.data.keys().hasOnly(['role', 'joinedAt', 'name']) &&
+          request.resource.data.role == 'player' &&
+          request.resource.data.name is string &&
+          request.resource.data.name.size() >= 1 &&
+          request.resource.data.name.size() <= 50 &&
+          request.resource.data.joinedAt == request.time &&
+          getAfter(/databases/$(database)/documents/waitingAreas/$(roomId)).data.status == 'looking'
+        );
+      }
+    }
+
+    match /rooms/{roomId} {
+      allow read;
+
+      match /cards/{cardId} {
+        allow read: if (
+          'revealedByMoveId' in resource.data.keys() ||
+          request.auth.uid in resource.data.shownToUids
+        );
+        allow update: if isValidVisibilityChange(
+          request.resource.data,
+          resource.data
+        )
+
+        function isValidVisibilityChange(after, before) {
+          return (
+            after.keys().hasOnly(['suit', 'rank', 'shownToUids',
+              'drawnByMoveId', 'revealedByMoveId', 'suitWildForHints']) &&
+            after.suit == before.suit &&
+            after.rank == before.rank &&
+            after.get('suitWildForHints', null) == before.get('suitWildForHints', null) &&
+            (
+              isValidVisibilityChangeReveal(after, before) ||
+              isValidVisibilityChangeDraw(after, before)
+            )
+          );
+        }
+
+        function isValidVisibilityChangeReveal(after, before) {
+          return (
+            'revealedByMoveId' in after.keys() &&
+            !('revealedByMoveId' in before.keys()) &&
+            after.revealedByMoveId is int &&
+
+            after.drawnByMoveId == before.drawnByMoveId &&
+
+            int(cardId) == getMoveAfter(after.revealedByMoveId).cardId &&
+            setEquals(after.shownToUids, getRoom().playerIdByUid.keys())
+          );
+        }
+
+        function isValidVisibilityChangeDraw(after, before) {
+          return (
+            'drawnByMoveId' in after.keys() &&
+            !('drawnByMoveId' in before.keys()) &&
+            after.drawnByMoveId is int &&
+
+            !('revealedByMoveId' in before.keys()) &&
+            !('revealedByMoveId' in after.keys()) &&
+            visibleToAllPlayersButSelf(
+              after.shownToUids,
+              getRoom(),
+              getMoveAfter(after.drawnByMoveId)
+            )
+          );
+        }
+
+        function visibleToAllPlayersButSelf(shownToUids, room, move) {
+          return (
+            move.action in ['play', 'discard'] &&
+            int(cardId) == move.stateAfter.deckTopCardId - 1 &&
+            shownToUids.size() == room.playerIdByUid.keys().size() - 1 &&
+            setEquals(
+              shownToUids.concat([room.uidByPlayerId[move.playerId]]),
+              getRoom().playerIdByUid.keys()
+            )
+          );
+        }
+      }
+
+      match /moves/{moveId} {
+        allow read;
+        allow create: if isValidMove(
+          request.resource.data,
+          getRoom(),
+          getLastMove()
+        );
+        allow update: if isValidReaction(request.resource.data, resource.data);
+
+        function getLastMove() {
+          return get(/databases/$(database)/documents/rooms/$(roomId)/moves/$(string(int(moveId) - 1))).data;
+        }
+
+        function isValidMove(move, room, lastMove) {
+          return (
+            (lastMove.action != 'play' || 'result' in lastMove.keys()) &&
+            move.playerId == room.playerIdByUid[request.auth.uid] &&
+            move.playerId == (lastMove.playerId + 1) % room.playerIdByUid.size() &&
+            !isGameEnd(room, lastMove) &&
+            move.stateAfter.keys().hasOnly([
+              'clockCount', 'fuseCount', 'deckTopCardId',
+              'players', 'highestRanks']) &&
+            (
+              (move.action == 'play' && isValidPlay(move, room, lastMove)) ||
+              (move.action == 'discard' && isValidDiscard(move, room, lastMove)) ||
+              (move.action == 'hint' && isValidHint(move, room, lastMove))
+            )
+          );
+        }
+
+        function isGameEnd(room, lastMove) {
+          return (
+            // Game over: no more fuse.
+            lastMove.stateAfter.fuseCount == 0 ||
+            // Prefect game: All suits are at max rank.
+            lastMove.stateAfter.highestRanks.hasOnly([room.rules.rankCount - 1]) ||
+            // TODO: Game also ends after deck runs out + one last round.
+            false
+          );
+        }
+
+        function isValidPlay(move, room, lastMove) {
+          return (
+            move.keys().hasOnly(['action', 'playerId', 'stateAfter', 'cardId']) &&
+
+            // Unchanged game state:
+            move.stateAfter.clockCount == lastMove.stateAfter.clockCount &&
+            move.stateAfter.fuseCount == lastMove.stateAfter.fuseCount &&
+            move.stateAfter.highestRanks == lastMove.stateAfter.highestRanks &&
+
+            cardReplaced(lastMove.stateAfter, move.stateAfter, move, room.rules) &&
+            'revealedByMoveId' in getCardAfter(move.cardId)
+          );
+        }
+
+        function isValidDiscard(move, room, lastMove) {
+          return (
+            move.keys().hasOnly(['action', 'playerId', 'stateAfter', 'cardId']) &&
+
+            // Unchanged game state:
+            move.stateAfter.fuseCount == lastMove.stateAfter.fuseCount &&
+            move.stateAfter.highestRanks == lastMove.stateAfter.highestRanks &&
+
+            // Increases clock count (or denies if already at max).
+            lastMove.stateAfter.clockCount < room.rules.maxClockCount &&
+            move.stateAfter.clockCount == lastMove.stateAfter.clockCount + 1 &&
+
+            cardReplaced(lastMove.stateAfter, move.stateAfter, move, room.rules) &&
+            'revealedByMoveId' in getCardAfter(move.cardId)
+          );
+        }
+
+        function cardReplaced(before, after, move, rules) {
+          return (
+            after.players.size() == before.players.size() &&
+            startEquals(move.playerId, before.players, after.players) &&
+            endEquals(move.playerId + 1, before.players, after.players) &&
+            after.players[move.playerId].hand[:before.players[move.playerId].hand.size() - 1] ==
+              before.players[move.playerId].hand.removeAll([move.cardId]) &&
+            (
+              (
+                before.deckTopCardId == rules.totalCardCount &&
+                after.deckTopCardId == rules.totalCardCount
+              ) || (
+                before.deckTopCardId < rules.totalCardCount &&
+                after.deckTopCardId == before.deckTopCardId + 1 &&
+                after.players[move.playerId].hand[after.players[move.playerId].hand.size() - 1] == before.deckTopCardId &&
+               'drawnByMoveId' in getCardAfter(before.deckTopCardId)
+              )
+            )
+          );
+        }
+
+        // Hint:
+
+        function isValidHint(move, room, lastMove) {
+          return (
+            move.keys().hasOnly([
+              'action', 'playerId', 'stateAfter',
+              'targetPlayerId', 'suit', 'rank',
+              'matchingCardIds', 'nonMatchingCardIds']) &&
+
+            // Unchanged game state.
+            move.stateAfter.fuseCount == lastMove.stateAfter.fuseCount &&
+            move.stateAfter.deckTopCardId == lastMove.stateAfter.deckTopCardId &&
+            move.stateAfter.players == lastMove.stateAfter.players &&
+            move.stateAfter.highestRanks == lastMove.stateAfter.highestRanks &&
+
+            // Decreases clock count (or denies if already at 0).
+            lastMove.stateAfter.clockCount > 0 &&
+            move.stateAfter.clockCount == lastMove.stateAfter.clockCount - 1 &&
+
+            move.targetPlayerId != move.playerId &&
+            move.matchingCardIds.size() > 0 &&
+            (isValidRankHint(move, lastMove) || isValidSuitHint(move, lastMove))
+          );
+        }
+
+        function isValidRankHint(move, lastMove) {
+          return (
+            'rank' in move.keys() &&
+            !('suit' in move.keys()) &&
+            isValidMatchResult(
+              'rank',
+              move.rank,
+              move.matchingCardIds,
+              move.nonMatchingCardIds,
+              lastMove.stateAfter.players[move.targetPlayerId].hand
+            )
+          );
+        }
+
+        function isValidSuitHint(move, lastMove) {
+          return (
+            'suit' in move.keys() &&
+            !('rank' in move.keys()) &&
+            isValidMatchResult(
+              'suit',
+              move.suit,
+              move.matchingCardIds,
+              move.nonMatchingCardIds,
+              lastMove.stateAfter.players[move.targetPlayerId].hand
+            )
+          );
+        }
+
+        function isValidMatchResult(field, expected, trueSet, falseSet, hand) {
+          return (
+            (hand.size() == trueSet.size() + falseSet.size()) &&
+            (hand.size() <= 0 || isValidMatch(0, field, expected, trueSet, falseSet, hand)) &&
+            (hand.size() <= 1 || isValidMatch(1, field, expected, trueSet, falseSet, hand)) &&
+            (hand.size() <= 2 || isValidMatch(2, field, expected, trueSet, falseSet, hand)) &&
+            (hand.size() <= 3 || isValidMatch(3, field, expected, trueSet, falseSet, hand)) &&
+            (hand.size() <= 4 || isValidMatch(4, field, expected, trueSet, falseSet, hand)) &&
+            (hand.size() <= 5 || isValidMatch(5, field, expected, trueSet, falseSet, hand))
+          );
+        }
+
+        function isValidMatch(i, field, expected, trueSet, falseSet, hand) {
+          return (
+            (
+              i < trueSet.size() &&
+              trueSet[i] in hand &&
+              // Enforce uniqueness within trueSet.
+              (i == 0 || !(trueSet[i] in trueSet[:i])) &&
+              isWildOrExpected(getCard(trueSet[i]), field, expected)
+            ) || (
+              i >= trueSet.size() &&
+              falseSet[i - trueSet.size()] in hand &&
+              // Enforce uniqueness within falseSet.
+              (i == trueSet.size() || !(falseSet[i - trueSet.size()] in falseSet[:i - trueSet.size()])) &&
+              !isWildOrExpected(getCard(falseSet[i - trueSet.size()]), field, expected)
+            )
+          );
+        }
+
+        function isWildOrExpected(card, field, expected) {
+          return (card[field] == expected) || (card.get('suitWildForHints', false) && field == 'suit');
+        }
+
+        // Reaction:
+
+        function isValidReaction(move, moveBefore) {
+          return (
+            moveBefore.action == 'play' &&
+            !('result' in moveBefore.keys()) &&
+            move.keys().hasOnly(['action', 'playerId', 'stateAfter', 'cardId', 'result']) &&
+
+            // Unchanged move fields:
+            move.action == moveBefore.action &&
+            move.playerId == moveBefore.playerId &&
+            move.cardId == moveBefore.cardId &&
+            move.stateAfter.keys().hasOnly([
+              'clockCount', 'fuseCount', 'deckTopCardId',
+              'players', 'highestRanks']) &&
+
+            // Unchanged game state:
+            move.stateAfter.deckTopCardId == moveBefore.stateAfter.deckTopCardId &&
+            move.stateAfter.players == moveBefore.stateAfter.players &&
+
+            (
+              move.result == 'success' && isValidSuccessState(
+                move.stateAfter,
+                moveBefore.stateAfter,
+                getCard(move.cardId)
+              ) ||
+              move.result == 'failure' && isValidFailureState(
+                move.stateAfter,
+                moveBefore.stateAfter,
+                getCard(move.cardId)
+              )
+            )
+          );
+        }
+
+        function isValidSuccessState(after, before, card) {
+          return (
+            before.highestRanks[card.suit] == card.rank - 1 &&
+            before.highestRanks.size() == after.highestRanks.size() &&
+            after.fuseCount == before.fuseCount &&
+            startEquals(card.suit, before.highestRanks, after.highestRanks) &&
+            endEquals(card.suit + 1, before.highestRanks, after.highestRanks) &&
+            after.highestRanks[card.suit] == card.rank &&
+            isValidClockCount(after.clockCount, before.clockCount, card, getRoom())
+          );
+        }
+
+        function isValidFailureState(after, before, card) {
+          return (
+            before.highestRanks[card.suit] != card.rank - 1 &&
+            before.highestRanks == after.highestRanks &&
+            after.clockCount == before.clockCount &&
+            after.fuseCount == before.fuseCount - 1
+          );
+        }
+
+        function isValidClockCount(afterCount, beforeCount, card, room) {
+          return (
+            (card.rank != room.rules.rankCount - 1 && afterCount == beforeCount) ||
+            (card.rank == room.rules.rankCount - 1 && (
+              (beforeCount == room.rules.maxClockCount && afterCount == beforeCount) ||
+              (beforeCount < room.rules.maxClockCount && afterCount == beforeCount + 1)
+            ))
+          );
+        }
+      }
+
+      // Room Helpers:
+
+      function getRoom() {
+        return get(/databases/$(database)/documents/rooms/$(roomId)).data;
+      }
+
+      function getCard(cardId) {
+        return get(/databases/$(database)/documents/rooms/$(roomId)/cards/$(cardId)).data;
+      }
+
+      function getCardAfter(cardId) {
+        return getAfter(/databases/$(database)/documents/rooms/$(roomId)/cards/$(cardId)).data;
+      }
+
+      function getMoveAfter(moveId) {
+        return getAfter(/databases/$(database)/documents/rooms/$(roomId)/moves/$(moveId)).data;
+      }
+
+      // List Utils:
+
+      function startEquals(n, listA, listB) {
+        return n == 0 || listA[0:n] == listB[0:n];
+      }
+
+      function endEquals(i, listA, listB) {
+        return i == listA.size() || listA[i:] == listB[i + listB.size() - listA.size():];
+      }
+
+      function setEquals(listA, listB) {
+        return listA.size() == listB.size() && listA.hasAll(listB) && listB.hasAll(listA);
+      }
+    }
+  }
+}

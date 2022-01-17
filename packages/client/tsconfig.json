@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["es5", "es2015.promise", "es2015.collection", "es2015.iterable", "es2015.core"],
+    "typeRoots": [
+      "./typings"
+    ],
+    "baseUrl": ".",
+    "paths": { "firebase/app": ["firebase-app.d.ts"]},
+    "declaration": true,
+    "outDir": "lib"
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "name": "senko-web",
+  "version": "1.0.0",
+  "description": "A Hanabi web client.",
+  "author": "Yuchen Shi <22875286+yuchenshi@users.noreply.github.com>",
+  "homepage": "https://github.com/yuchenshi/senko#readme",
+  "license": "Apache-2.0",
+  "keywords": [
+    "senko",
+    "hanabi",
+    "firebase",
+    "firestore",
+    "board",
+    "game"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yuchenshi/senko.git"
+  },
+  "scripts": {
+    "lint": "tslint --project tsconfig.json",
+    "dev": "webpack-dev-server --emulatorConfig=../server/firebase.json",
+    "dev:standalone": "webpack-dev-server",
+    "build": "webpack --mode=production"
+  },
+  "bugs": {
+    "url": "https://github.com/yuchenshi/senko/issues"
+  },
+  "devDependencies": {
+    "@types/classnames": "^2.2.9",
+    "@types/mithril": "^2.0.0",
+    "autoprefixer": "^9.6.1",
+    "css-loader": "^2.1.1",
+    "filesystem": "1.0.1",
+    "mini-css-extract-plugin": "^0.6.0",
+    "postcss": "^7.0.18",
+    "postcss-loader": "^3.0.0",
+    "source-map-support": "0.5.13",
+    "stylus": "^0.54.7",
+    "stylus-loader": "^3.0.2",
+    "ts-loader": "^6.1.2",
+    "tslint": "^5.20.0",
+    "typescript": "^3.8.3",
+    "webpack": "^4.41.0",
+    "webpack-cli": "^3.3.9",
+    "webpack-dev-server": "^3.8.1"
+  },
+  "dependencies": {
+    "bootstrap": "^4.3.1",
+    "classnames": "^2.2.6",
+    "firebase": "^7.24.0",
+    "mithril": "^2.0.4",
+    "rxfire": "^3.13.5",
+    "rxjs": "^6.5.3",
+    "senko": "^1.0.0",
+    "senko-types": "^1.0.0"
+  },
+  "private": true
+}

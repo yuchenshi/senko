@@ -1,0 +1,23 @@
+<svg width="300" height="500" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">
+<defs><linearGradient id="r" x1="0" x2="0" y1="0.1" y2="0.9">
+<stop offset="0" stop-color="red"/>
+<stop offset="0.333" stop-color="#ff0"/>
+<stop offset="0.5" stop-color="#0f0"/>
+<stop offset="0.666" stop-color="cyan"/>
+<stop offset="0.833" stop-color="blue"/>
+<stop offset="1" stop-color="#f0f"/>
+</linearGradient></defs>
+<defs><linearGradient id="rh" x1="0.1" x2="0.9" y1="0" y2="0">
+<stop offset="0" stop-color="red"/>
+<stop offset="0.333" stop-color="#ff0"/>
+<stop offset="0.5" stop-color="#0f0"/>
+<stop offset="0.666" stop-color="cyan"/>
+<stop offset="0.833" stop-color="blue"/>
+<stop offset="1" stop-color="#f0f"/>
+</linearGradient></defs>
+<rect x="2" y="02" r="60" width="296" height="396" stroke="#000000" stroke-width="4" fill="url(#rh)" rx="30" ry="30"/>
+<rect x="2" y="22" r="60" width="296" height="396" stroke="#000000" stroke-width="4" fill="#DDDDDD" rx="30" ry="30"/>
+<rect x="2" y="42" r="60" width="296" height="396" stroke="#000000" stroke-width="4" fill="#DDDDDD" rx="30" ry="30"/>
+<circle cx="150" cy="160" fill="url(#r)" r="60" stroke="#000000" stroke-width="5"/>
+<circle cx="150" cy="320" fill="url(#r)" r="60" stroke="#000000" stroke-width="5"/>
+</svg>

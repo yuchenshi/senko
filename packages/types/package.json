@@ -1,0 +1,29 @@
+{
+  "name": "senko-types",
+  "version": "1.0.0",
+  "description": "TypeScript types for Senko Hanabi.",
+  "keywords": [
+    "senko",
+    "hanabi"
+  ],
+  "author": "Yuchen Shi <22875286+yuchenshi@users.noreply.github.com>",
+  "homepage": "https://github.com/yuchenshi/senko#readme",
+  "license": "Apache-2.0",
+  "files": [
+    "index.d.ts",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yuchenshi/senko.git"
+  },
+  "scripts": {
+    "test": "tsc"
+  },
+  "bugs": {
+    "url": "https://github.com/yuchenshi/senko/issues"
+  },
+  "devDependencies": {
+    "typescript": "^3.5.2"
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "name": "senko",
+  "version": "1.0.0",
+  "description": "A Hanabi client library with CLI.",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch --preserveWatchOutput",
+    "pretest": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "tslint --project tsconfig.json",
+    "dev": "npm run build:watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yuchenshi/senko.git"
+  },
+  "keywords": [
+    "senko",
+    "hanabi",
+    "firebase",
+    "firestore",
+    "board",
+    "game"
+  ],
+  "author": "Yuchen Shi <22875286+yuchenshi@users.noreply.github.com>",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/yuchenshi/senko/issues"
+  },
+  "homepage": "https://github.com/yuchenshi/senko#readme",
+  "devDependencies": {
+    "senko-types": "^1.0.0",
+    "tslint": "^5.20.0",
+    "typescript": "^3.8.3"
+  },
+  "dependencies": {
+    "@firebase/app-types": "^0.4.4",
+    "@firebase/firestore-types": "^1.5.0",
+    "rxfire": "^3.8.3",
+    "rxjs": "^6.5.3"
+  }
+}
