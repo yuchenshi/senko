@@ -44,7 +44,7 @@ function handleRoom(roomId: string) {
     const room = firestore.collection('rooms').doc(roomId);
 
     let createRoom: any = null;
-    const roomExists = new Promise(resolve => {
+    const roomExists = new Promise<boolean>(resolve => {
       const unsubs = room.onSnapshot(roomDoc => {
         if (roomDoc.exists) {
           unsubs();
@@ -78,8 +78,7 @@ function handleRoom(roomId: string) {
         }
       });
     });
-    Promise.all([uidReady, roomExists]).then(([uidArg]) => {
-      const uid = uidArg as string; // TypeScript workaround.
+    Promise.all([uidReady, roomExists]).then(([uid]) => {
       const roomView = RoomView.create(room, uid);
       subscribeAndReact(roomView, room);
       const actionsSubj = new Subject<Action>();
