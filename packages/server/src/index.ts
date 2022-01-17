@@ -12,10 +12,6 @@ const COPIES_PER_RANK_NORMAL = [3, 2, 2, 2, 1]; /* three 1s, two 2-4s, one 5 */
 // One per each card, only used for the "unique" rank, if enabled in game rules.
 const COPIES_PER_RANK_REDUCED = [1, 1, 1, 1, 1];
 
-interface GameOptions {
-  suitCount: 5 | 6;
-}
-
 export const startGame = functions.https.onCall(
   async (data: any, context: any) => {
     if (!context.auth || !context.auth.uid) {
@@ -63,7 +59,6 @@ export const startGame = functions.https.onCall(
       playerIdByUid[p] = i;
     });
 
-    const options: GameOptions = waitingArea.rules;
     const suits: Rules['suits'] = [];
     for (let suit = 0; suit < 5; suit++) {
       suits.push({
@@ -81,10 +76,7 @@ export const startGame = functions.https.onCall(
         wildForHints: false,
         copiesPerRank: COPIES_PER_RANK_REDUCED,
       });
-    } else if (
-      (waitingArea.preset === '6colors' || !waitingArea.preset) &&
-      options.suitCount !== 5
-    ) {
+    } else if (waitingArea.preset === '6colors') {
       suits.push({
         wildForHints: false,
         copiesPerRank: COPIES_PER_RANK_NORMAL,

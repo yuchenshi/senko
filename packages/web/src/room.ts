@@ -4,8 +4,6 @@ import { WaitingArea, WaitingAreaUser } from 'senko';
 import { rxm } from './util';
 import { combineLatest } from 'rxjs';
 
-const SUIT_COUNT = location.search.indexOf('5color') >= 0 ? 5 : 6;
-
 export function viewWaitingAreaList(
   firestore: Firestore,
   uidReady: Promise<string>,
@@ -42,7 +40,6 @@ export function viewWaitingAreaList(
                     name: form.roomName,
                     status: 'looking',
                     ownerUid: uid,
-                    rules: { suitCount: SUIT_COUNT },
                     createdAt: FieldValue.serverTimestamp(),
                   });
                   batch.set(room.collection('users').doc(uid), {
@@ -165,7 +162,7 @@ const CreateRoomForm: m.Component<
       Dialog,
       {
         onSubmit: () => attrs.onSubmit(state),
-        title: 'Create Room (' + SUIT_COUNT + ' Colors)',
+        title: 'Create Room',
         yesLabel: 'Create',
         yesDisabled: !state.playerName || !state.roomName,
       },

@@ -1,4 +1,4 @@
-// Copyright 2019 Yuchen Shi
+// Copyright 2019-2022 Yuchen Shi
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,26 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
     match /waitingAreas/{roomId} {
       allow read;
       allow create: if (
-        request.resource.data.keys().hasOnly(['ownerUid', 'name', 'status', 'createdAt', 'rules']) &&
+        request.resource.data.keys().hasOnly(['ownerUid', 'name', 'status', 'createdAt']) &&
         request.resource.data.ownerUid == request.auth.uid &&
         request.resource.data.name is string &&
         request.resource.data.name.size() >= 1 &&
         request.resource.data.name.size() <= 50 &&
         request.resource.data.status == 'looking' &&
         request.resource.data.createdAt == request.time &&
-        request.resource.data.rules.keys().hasOnly(['suitCount']) &&
-        request.resource.data.rules.suitCount in [5, 6] &&
         existsAfter(/databases/$(database)/documents/waitingAreas/$(roomId)/users/$(request.auth.uid))
       );
       allow update: if (
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['preset', 'suitCount']) &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['preset']) &&
         resource.data.ownerUid == request.auth.uid &&
-        request.resource.data.rules.suitCount in [5, 6] &&
         (!('preset' in request.resource.data) || request.resource.data.preset in ['5colors', '6colors', 'rainbow', 'unicorn'])
       );
       match /users/{uid} {
