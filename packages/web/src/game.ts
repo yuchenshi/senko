@@ -331,9 +331,7 @@ const HintButton: m.Component<HintButtonProps> = {
     let title = '';
     if (hintedValue != null) {
       if (field === 'suit') {
-        title = `This card is ${
-          wild ? wildDesc : suitDesc[hintedValue]
-        } according to hints.`;
+        title = `This card is ${suitDesc[hintedValue]} according to hints.`;
       } else {
         title = `This card has Rank ${rankDesc[hintedValue]} according to hints.`;
       }

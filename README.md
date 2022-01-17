@@ -23,7 +23,7 @@ Features
     - Copies left of a certain card
 * Configurable rulesets
     - 5/6 colors
-    - Wildcard (rainbow) cards
+    - Wildcard (rainbow) cards (EXPERIMENTAL, in-game description has errors)
     - ~Unicorn~ Unique color (which has only one copy of each rank)
 
 

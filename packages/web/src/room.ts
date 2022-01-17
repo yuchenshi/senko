@@ -355,7 +355,7 @@ export function waitingAreaComponent(
                         { value: '5colors', label: '5 Colors' },
                         { value: '6colors', label: '6 Colors' },
                         { value: 'unicorn', label: '5 Colors + Unique' },
-                        { value: 'rainbow', label: '5 Colors + Rainbow' },
+                        { value: 'rainbow', label: '5 Colors + Rainbow (EXPERIMENTAL)' },
                       ],
                       value: preset || '5colors',
                       onchange(value) {
