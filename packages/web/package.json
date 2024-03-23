@@ -52,8 +52,8 @@
     "mithril": "^2.0.4",
     "rxfire": "^3.13.5",
     "rxjs": "^6.5.3",
-    "senko": "^1.0.0",
-    "senko-types": "^1.0.0"
+    "senko": "../client",
+    "senko-types": "../types"
   },
   "private": true
 }
